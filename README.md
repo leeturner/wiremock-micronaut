@@ -8,7 +8,7 @@ inject them into your tests. Annotations and attributes mirror
 ## Requirements
 
 - Java 25
-- Micronaut 5.x with `micronaut-test-junit5`
+- Micronaut 5.2.1 or later (5.x) with `micronaut-test-junit5`
 - Building this repo needs Gradle running on JDK 25 (see `.sdkmanrc`)
 
 ## Install
