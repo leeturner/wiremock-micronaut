@@ -56,3 +56,33 @@ spotless {
         googleJavaFormat(libs.versions.google.java.format.get())
     }
 }
+
+mavenPublishing {
+    publishToMavenCentral(automaticRelease = true)
+    signAllPublications()
+    coordinates("com.leeturner", "wiremock-micronaut", version.toString())
+    pom {
+        name = "WireMock Micronaut"
+        description = "WireMock integration for Micronaut tests"
+        url = "https://github.com/leeturner/wiremock-micronaut"
+        inceptionYear = "2026"
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        developers {
+            developer {
+                id = "leeturner"
+                name = "Lee Turner"
+                url = "https://leeturner.me"
+            }
+        }
+        scm {
+            url = "https://github.com/leeturner/wiremock-micronaut"
+            connection = "scm:git:git://github.com/leeturner/wiremock-micronaut.git"
+            developerConnection = "scm:git:ssh://git@github.com/leeturner/wiremock-micronaut.git"
+        }
+    }
+}
