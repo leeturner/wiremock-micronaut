@@ -16,3 +16,10 @@ jobs:
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v6
       - run: ./gradlew build -PmicronautVersion=5.+ --refresh-dependencies
+      - name: Report resolved Micronaut version
+        if: always()
+        run: |
+          ./gradlew -q dependencyInsight -PmicronautVersion=5.+ \
+            --dependency io.micronaut.platform:micronaut-platform --configuration compileClasspath \
+            | tee insight.txt
+          echo "Micronaut platform: \`$(grep -m1 -o '5\.+ -> [^ ]*' insight.txt)\`" >> "$GITHUB_STEP_SUMMARY"
