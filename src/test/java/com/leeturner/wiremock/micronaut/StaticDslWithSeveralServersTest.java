@@ -18,6 +18,7 @@ class StaticDslWithSeveralServersTest {
   @Test
   void staticClientIsNotPointedAtEitherServer() {
     // beforeEach must leave the static client alone when several servers exist.
-    assertThatThrownBy(WireMock::listAllStubMappings).isInstanceOf(Exception.class);
+    assertThatThrownBy(WireMock::listAllStubMappings)
+        .hasMessageContaining("Connect to http://localhost:80 failed");
   }
 }

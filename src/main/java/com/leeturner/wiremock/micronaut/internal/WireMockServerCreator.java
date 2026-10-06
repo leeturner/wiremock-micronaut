@@ -137,7 +137,7 @@ final class WireMockServerCreator {
     }
   }
 
-  private static Optional<String> firstExistingStubDirectory(List<String> candidates) {
+  static Optional<String> firstExistingStubDirectory(List<String> candidates) {
     return candidates.stream()
         .filter(
             dir ->

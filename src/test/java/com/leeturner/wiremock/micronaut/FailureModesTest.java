@@ -3,11 +3,13 @@ package com.leeturner.wiremock.micronaut;
 import static com.leeturner.wiremock.micronaut.testsupport.FixtureRunner.failureMessages;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.leeturner.wiremock.micronaut.fixtures.Boom;
 import com.leeturner.wiremock.micronaut.fixtures.ContextFailureFixture;
 import com.leeturner.wiremock.micronaut.fixtures.DuplicateNameFixture;
 import com.leeturner.wiremock.micronaut.fixtures.InjectParameterWithBeanFixture;
 import com.leeturner.wiremock.micronaut.fixtures.MissingDirectoryFixture;
 import com.leeturner.wiremock.micronaut.fixtures.NestedDeclarationFixture;
+import com.leeturner.wiremock.micronaut.fixtures.NestedInjectParameterFixture;
 import com.leeturner.wiremock.micronaut.fixtures.NoNoArgConstructorFixture;
 import com.leeturner.wiremock.micronaut.fixtures.PropertyClashFixture;
 import com.leeturner.wiremock.micronaut.fixtures.StartFailureFixture;
@@ -48,6 +50,13 @@ class FailureModesTest {
   }
 
   @Test
+  void injectWireMockParameterOnNestedClassWithRegisterBeanServer() {
+    assertThat(failureMessages(NestedInjectParameterFixture.class))
+        .contains("NestedInjectParameterFixture$Inner")
+        .contains("not supported in test classes with a registerBean server");
+  }
+
+  @Test
   void explicitPropertyClash() {
     assertThat(failureMessages(PropertyClashFixture.class))
         .contains("Property 'x.url' is bound by more than one WireMock server");
@@ -82,7 +91,9 @@ class FailureModesTest {
 
   @Test
   void contextStartupFailureStillStopsServers() {
+    Boom.runningWhenFailing = null;
     assertThat(failureMessages(ContextFailureFixture.class)).contains("boom");
+    assertThat(Boom.runningWhenFailing).contains(ContextFailureFixture.class.getName());
     assertThat(WireMockServers.runningRootTestClasses())
         .doesNotContain(ContextFailureFixture.class.getName());
   }

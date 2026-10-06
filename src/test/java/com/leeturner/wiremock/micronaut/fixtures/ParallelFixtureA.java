@@ -9,12 +9,19 @@ import com.leeturner.wiremock.micronaut.ConfigureWireMock;
 import com.leeturner.wiremock.micronaut.EnableWireMock;
 import com.leeturner.wiremock.micronaut.InjectWireMock;
 import com.leeturner.wiremock.micronaut.testsupport.Http;
+import com.leeturner.wiremock.micronaut.testsupport.Rendezvous;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
 
 @EnableWireMock(@ConfigureWireMock(name = "a"))
 public class ParallelFixtureA {
   @InjectWireMock("a")
   WireMockServer server;
+
+  @BeforeAll
+  static void waitForTheOtherClass() {
+    Rendezvous.meet();
+  }
 
   @RepeatedTest(5)
   void servesItsOwnStub() {

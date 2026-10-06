@@ -13,12 +13,16 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.leeturner.wiremock.micronaut.ConfigureWireMock;
 import com.leeturner.wiremock.micronaut.WireMockConfigurationCustomizer;
 import com.leeturner.wiremock.micronaut.testsupport.Http;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
+import org.junit.jupiter.api.io.TempDir;
 
 class WireMockServerCreatorTest {
 
@@ -57,6 +61,16 @@ class WireMockServerCreatorTest {
       configuration.extensions(new UppercaseTransformer());
     }
   }
+
+  public static class DisableTemplating implements WireMockConfigurationCustomizer {
+    @Override
+    public void customize(WireMockConfiguration configuration, ConfigureWireMock options) {
+      configuration.globalTemplating(false);
+    }
+  }
+
+  @ConfigureWireMock(globalTemplating = true, configurationCustomizers = DisableTemplating.class)
+  static class CustomizerOverrides {}
 
   @ConfigureWireMock
   static class Defaults {}
@@ -185,5 +199,34 @@ class WireMockServerCreatorTest {
     assertThatThrownBy(() -> create(BadKeystore.class))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("'tls'");
+  }
+
+  @Test
+  void customizerWinsOverAnnotationSettings() {
+    WireMockServer server = create(CustomizerOverrides.class);
+    server.stubFor(get("/t").willReturn(ok("{{request.path}}")));
+    // The annotation turned templating on; the customizer ran afterwards and turned it off.
+    assertThat(Http.get(server.baseUrl() + "/t").body()).isEqualTo("{{request.path}}");
+  }
+
+  @Test
+  void firstCandidateWithMappingsOrFilesWins(@TempDir Path tmp) throws IOException {
+    Path empty = Files.createDirectory(tmp.resolve("empty"));
+    Path withFiles = Files.createDirectories(tmp.resolve("withFiles/__files")).getParent();
+    Path withMappings = Files.createDirectories(tmp.resolve("withMappings/mappings")).getParent();
+    assertThat(
+            WireMockServerCreator.firstExistingStubDirectory(
+                List.of(
+                    tmp.resolve("missing").toString(),
+                    empty.toString(),
+                    withFiles.toString(),
+                    withMappings.toString())))
+        .contains(withFiles.toString());
+    assertThat(
+            WireMockServerCreator.firstExistingStubDirectory(
+                List.of(empty.toString(), withMappings.toString())))
+        .contains(withMappings.toString());
+    assertThat(WireMockServerCreator.firstExistingStubDirectory(List.of(empty.toString())))
+        .isEmpty();
   }
 }

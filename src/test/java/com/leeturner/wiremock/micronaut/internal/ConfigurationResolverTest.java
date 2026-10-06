@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.leeturner.wiremock.micronaut.ConfigureWireMock;
 import com.leeturner.wiremock.micronaut.EnableWireMock;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
@@ -45,7 +47,27 @@ class ConfigurationResolverTest {
     @Nested
     @ConfigureWireMock(name = "x")
     class BadInner {}
+
+    @Nested
+    @EnableWireMock
+    class BadEnableInner {}
   }
+
+  @EnableWireMock(@ConfigureWireMock(name = "users-api-2", registerBean = true))
+  static class GoodBeanName {}
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @ConfigureWireMock(name = "meta")
+  @interface MetaServer {}
+
+  @MetaServer
+  static class MetaAnnotated {}
+
+  @ConfigureWireMock(name = "users")
+  static class UsersParent {}
+
+  @ConfigureWireMock(name = "users", baseUrlProperties = "child.url")
+  static class UsersChild extends UsersParent {}
 
   @EnableWireMock({@ConfigureWireMock(name = "a"), @ConfigureWireMock(name = "a")})
   static class DuplicateNames {}
@@ -168,5 +190,35 @@ class ConfigurationResolverTest {
     assertThat(ConfigurationResolver.resolve(Two.class)).hasSize(2);
     assertThat(ConfigurationResolver.propertyOwners(ConfigurationResolver.resolve(Two.class)))
         .containsEntry("wiremock.server.port", java.util.List.of("a", "b"));
+  }
+
+  @Test
+  void enableWireMockOnNestedClassesIsRejected() {
+    assertThatThrownBy(() -> ConfigurationResolver.resolve(Outer.BadEnableInner.class))
+        .isInstanceOf(ExtensionConfigurationException.class)
+        .hasMessageContaining("@EnableWireMock cannot be declared on the @Nested class")
+        .hasMessageContaining("Move it to Outer");
+  }
+
+  @Test
+  void validRegisterBeanNameIsAccepted() {
+    assertThat(ConfigurationResolver.resolve(GoodBeanName.class))
+        .extracting(ConfigureWireMock::name)
+        .containsExactly("users-api-2");
+  }
+
+  @Test
+  void metaAnnotatedConfigureWireMockIsResolved() {
+    assertThat(ConfigurationResolver.isManaged(MetaAnnotated.class)).isTrue();
+    assertThat(ConfigurationResolver.resolve(MetaAnnotated.class))
+        .extracting(ConfigureWireMock::name)
+        .containsExactly("meta");
+  }
+
+  @Test
+  void subclassRedeclaringAParentServerNameFails() {
+    assertThatThrownBy(() -> ConfigurationResolver.resolve(UsersChild.class))
+        .isInstanceOf(ExtensionConfigurationException.class)
+        .hasMessageContaining("Duplicate WireMock server name(s) [users]");
   }
 }
