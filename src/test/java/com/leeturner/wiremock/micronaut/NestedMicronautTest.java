@@ -3,6 +3,7 @@ package com.leeturner.wiremock.micronaut;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.leeturner.wiremock.micronaut.testsupport.Http;
@@ -64,7 +65,8 @@ class NestedMicronautTest {
     void outerServerWasNotRestarted() {
       // Recorded by the outer test, which JUnit runs before the nested class, so a server
       // restarted for the nested class would have a different port.
-      assertThat(OUTER_PORT.get()).isPositive();
+      assumeTrue(
+          OUTER_PORT.get() > 0, "run the whole class: outerTestRecordsThePort records the port");
       assertThat(nestedUsers.isRunning()).isTrue();
       assertThat(nestedUsers.port()).isEqualTo(OUTER_PORT.get());
       assertThat(nestedContext.getRequiredProperty("users.url", String.class))
