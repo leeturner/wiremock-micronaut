@@ -1,0 +1,17 @@
+[versions]
+micronaut = "5.2.1"
+wiremock = "4.0.0-beta.39"
+jspecify = "1.0.1"
+google-java-format = "1.35.0"
+
+[libraries]
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version = "8.10.3" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
+micronaut-library = { id = "io.micronaut.library", version = "5.0.2" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.10" }
+kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version = "2.4.10" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.10" }
