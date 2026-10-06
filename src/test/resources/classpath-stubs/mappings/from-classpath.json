@@ -1,0 +1,1 @@
+{"request": {"method": "GET", "url": "/from-classpath"}, "response": {"status": 200, "body": "classpath"}}
