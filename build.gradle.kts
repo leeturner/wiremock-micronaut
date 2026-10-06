@@ -60,7 +60,7 @@ spotless {
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
-    coordinates("com.leeturner", "wiremock-micronaut", version.toString())
+    coordinates("io.github.leeturner", "wiremock-micronaut", version.toString())
     pom {
         name = "WireMock Micronaut"
         description = "WireMock integration for Micronaut tests"
