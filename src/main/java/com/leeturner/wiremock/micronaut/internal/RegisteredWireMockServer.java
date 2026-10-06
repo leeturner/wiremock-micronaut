@@ -5,7 +5,7 @@ import io.micronaut.context.annotation.Parameter;
 
 /** One entry per {@code registerBean} server, driven by {@link ServerProperties}. */
 @EachProperty("wiremock.micronaut.servers")
-public final class RegisteredWireMockServer {
+final class RegisteredWireMockServer {
   private final String name;
   private String registryKey = "";
 

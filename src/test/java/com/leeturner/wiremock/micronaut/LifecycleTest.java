@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.leeturner.wiremock.micronaut.fixtures.ParallelFixtureA;
 import com.leeturner.wiremock.micronaut.fixtures.ParallelFixtureB;
 import com.leeturner.wiremock.micronaut.fixtures.PerClassFixture;
-import com.leeturner.wiremock.micronaut.internal.WireMockServers;
+import com.leeturner.wiremock.micronaut.internal.RunningWireMockServers;
 import org.junit.jupiter.api.Test;
 
 class LifecycleTest {
@@ -27,7 +27,7 @@ class LifecycleTest {
   @Test
   void serversAreStoppedAfterTheClass() {
     run(PerClassFixture.class);
-    assertThat(WireMockServers.runningRootTestClasses())
+    assertThat(RunningWireMockServers.rootTestClasses())
         .doesNotContain(PerClassFixture.class.getName());
   }
 }

@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  * Running servers per root test class. Shared by the property factory and the JUnit extension;
  * whichever calls {@link #getOrStart} first starts the servers.
  */
-public final class WireMockServers {
+final class WireMockServers {
   private static final Logger LOG = LoggerFactory.getLogger(WireMockServers.class);
   private static final ConcurrentMap<String, Map<String, RunningServer>> SERVERS =
       new ConcurrentHashMap<>();

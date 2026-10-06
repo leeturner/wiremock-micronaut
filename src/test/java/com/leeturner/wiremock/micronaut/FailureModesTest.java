@@ -15,7 +15,7 @@ import com.leeturner.wiremock.micronaut.fixtures.PropertyClashFixture;
 import com.leeturner.wiremock.micronaut.fixtures.StartFailureFixture;
 import com.leeturner.wiremock.micronaut.fixtures.UnknownServerFixture;
 import com.leeturner.wiremock.micronaut.fixtures.WrongTypeFixture;
-import com.leeturner.wiremock.micronaut.internal.WireMockServers;
+import com.leeturner.wiremock.micronaut.internal.RunningWireMockServers;
 import org.junit.jupiter.api.Test;
 
 class FailureModesTest {
@@ -85,7 +85,7 @@ class FailureModesTest {
   @Test
   void serverStartFailureLeavesNothingRunning() {
     assertThat(failureMessages(StartFailureFixture.class)).contains("'bad'");
-    assertThat(WireMockServers.runningRootTestClasses())
+    assertThat(RunningWireMockServers.rootTestClasses())
         .doesNotContain(StartFailureFixture.class.getName());
   }
 
@@ -94,7 +94,7 @@ class FailureModesTest {
     Boom.runningWhenFailing = null;
     assertThat(failureMessages(ContextFailureFixture.class)).contains("boom");
     assertThat(Boom.runningWhenFailing).contains(ContextFailureFixture.class.getName());
-    assertThat(WireMockServers.runningRootTestClasses())
+    assertThat(RunningWireMockServers.rootTestClasses())
         .doesNotContain(ContextFailureFixture.class.getName());
   }
 }

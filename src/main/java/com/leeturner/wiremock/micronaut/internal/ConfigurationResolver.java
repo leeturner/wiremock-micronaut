@@ -21,7 +21,7 @@ import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.platform.commons.support.AnnotationSupport;
 
 /** Turns WireMock annotations on a test class into a validated server list. */
-public final class ConfigurationResolver {
+final class ConfigurationResolver {
 
   public static final Set<String> DEFAULT_PROPERTY_NAMES =
       Set.of(

@@ -6,7 +6,7 @@ import io.micronaut.context.annotation.Factory;
 
 /** Exposes {@code registerBean} servers as {@code @Named} Micronaut beans. */
 @Factory
-public final class WireMockServerBeanFactory {
+final class WireMockServerBeanFactory {
 
   @EachBean(RegisteredWireMockServer.class)
   public WireMockServer wireMockServer(RegisteredWireMockServer registration) {
