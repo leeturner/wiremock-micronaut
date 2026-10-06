@@ -14,7 +14,7 @@ inject them into your tests. Annotations and attributes mirror
 ## Install
 
 ```kotlin
-testImplementation("com.leeturner:wiremock-micronaut:0.1.0")
+testImplementation("io.github.leeturner:wiremock-micronaut:0.1.0")
 ```
 
 The library brings `wiremock-standalone` (a shaded jar), so WireMock's own
