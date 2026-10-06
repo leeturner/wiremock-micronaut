@@ -98,7 +98,15 @@ public final class WireMockMicronautExtension
 
   @Override
   public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) {
-    return parameterContext.isAnnotated(InjectWireMock.class);
+    return parameterContext
+        .findAnnotation(InjectWireMock.class)
+        .map(
+            inject -> {
+              RunningServer running =
+                  WireMockServers.getOrStart(context.getRequiredTestClass()).get(inject.value());
+              return running == null || !running.options().registerBean();
+            })
+        .orElse(false);
   }
 
   @Override
