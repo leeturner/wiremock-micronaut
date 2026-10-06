@@ -1,6 +1,6 @@
 package com.leeturner.wiremock.micronaut.fixtures;
 
-import com.leeturner.wiremock.micronaut.internal.WireMockServers;
+import com.leeturner.wiremock.micronaut.internal.RunningWireMockServers;
 import io.micronaut.context.annotation.Context;
 import io.micronaut.context.annotation.Requires;
 import java.util.Set;
@@ -12,7 +12,7 @@ public class Boom {
   public static volatile Set<String> runningWhenFailing;
 
   public Boom() {
-    runningWhenFailing = WireMockServers.runningRootTestClasses();
+    runningWhenFailing = RunningWireMockServers.rootTestClasses();
     throw new IllegalStateException("boom");
   }
 }

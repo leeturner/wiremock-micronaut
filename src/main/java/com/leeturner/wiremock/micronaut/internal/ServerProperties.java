@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** The Micronaut properties published for a set of running servers. */
-public final class ServerProperties {
+final class ServerProperties {
   public static final String REGISTRY_KEY_PROPERTY = "wiremock.micronaut.servers.%s.registry-key";
   private static final Logger LOG = LoggerFactory.getLogger(ServerProperties.class);
 
