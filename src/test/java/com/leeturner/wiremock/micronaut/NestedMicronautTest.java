@@ -62,8 +62,9 @@ class NestedMicronautTest {
 
     @Test
     void outerServerWasNotRestarted() {
-      // The outer test (ordered by JUnit before or after) records the port of the same server.
-      outerTestRecordsThePort();
+      // Recorded by the outer test, which JUnit runs before the nested class, so a server
+      // restarted for the nested class would have a different port.
+      assertThat(OUTER_PORT.get()).isPositive();
       assertThat(nestedUsers.isRunning()).isTrue();
       assertThat(nestedUsers.port()).isEqualTo(OUTER_PORT.get());
       assertThat(nestedContext.getRequiredProperty("users.url", String.class))

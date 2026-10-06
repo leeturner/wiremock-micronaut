@@ -217,6 +217,7 @@ class ConfigurationResolverTest {
 
   @Test
   void subclassRedeclaringAParentServerNameFails() {
+    // JUnit de-duplicates identical redeclarations, so UsersChild deliberately differs.
     assertThatThrownBy(() -> ConfigurationResolver.resolve(UsersChild.class))
         .isInstanceOf(ExtensionConfigurationException.class)
         .hasMessageContaining("Duplicate WireMock server name(s) [users]");

@@ -22,6 +22,9 @@ public final class FixtureRunner {
         .configurationParameter("junit.jupiter.execution.parallel.enabled", "true")
         .configurationParameter(
             "junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+        // Fixed, so a 1-CPU runner still overlaps the classes.
+        .configurationParameter("junit.jupiter.execution.parallel.config.strategy", "fixed")
+        .configurationParameter("junit.jupiter.execution.parallel.config.fixed.parallelism", "2")
         .selectors(selectors(fixtures))
         .execute();
   }

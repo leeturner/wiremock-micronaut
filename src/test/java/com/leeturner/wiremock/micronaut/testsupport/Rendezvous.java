@@ -9,15 +9,14 @@ public final class Rendezvous {
 
   private Rendezvous() {}
 
-  /** Blocks until another caller arrives; throws if none does within 20 seconds. */
+  /** Blocks until another caller arrives; throws if none does within 10 seconds. */
   public static void meet() {
     try {
-      BARRIER.await(20, TimeUnit.SECONDS);
+      BARRIER.await(10, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new IllegalStateException(e);
     } catch (Exception e) {
-      BARRIER.reset();
       throw new IllegalStateException("The parallel fixture classes never overlapped", e);
     }
   }
