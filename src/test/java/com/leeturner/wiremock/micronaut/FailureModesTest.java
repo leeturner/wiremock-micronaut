@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.leeturner.wiremock.micronaut.fixtures.ContextFailureFixture;
 import com.leeturner.wiremock.micronaut.fixtures.DuplicateNameFixture;
+import com.leeturner.wiremock.micronaut.fixtures.InjectParameterWithBeanFixture;
 import com.leeturner.wiremock.micronaut.fixtures.MissingDirectoryFixture;
 import com.leeturner.wiremock.micronaut.fixtures.NestedDeclarationFixture;
 import com.leeturner.wiremock.micronaut.fixtures.NoNoArgConstructorFixture;
@@ -36,6 +37,14 @@ class FailureModesTest {
   void duplicateNamesInAMicronautTest() {
     assertThat(failureMessages(DuplicateNameFixture.class))
         .contains("Duplicate WireMock server name(s) [a]");
+  }
+
+  @Test
+  void injectWireMockParameterWithRegisterBeanServer() {
+    assertThat(failureMessages(InjectParameterWithBeanFixture.class))
+        .contains("InjectParameterWithBeanFixture")
+        .contains("not supported in test classes with a registerBean server")
+        .contains("@Named");
   }
 
   @Test

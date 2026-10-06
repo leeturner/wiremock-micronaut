@@ -9,6 +9,7 @@ inject them into your tests. Annotations and attributes mirror
 
 - Java 25
 - Micronaut 5.x with `micronaut-test-junit5`
+- Building this repo needs Gradle running on JDK 25 (see `.sdkmanrc`)
 
 ## Install
 
@@ -137,9 +138,10 @@ duplicates fail fast.
   class, not on `@Nested` classes.
 - Without `@MicronautTest`, servers still run and inject, but nothing is
   bound into Micronaut configuration.
-- `@InjectWireMock` is not a jakarta `@Qualifier`. For `registerBean`
-  servers, inject method parameters with `@Named("<name>")`;
-  `@InjectWireMock` fields still work.
+- `@InjectWireMock` is not a jakarta `@Qualifier`. In a class with any
+  `registerBean` server, test-method parameters must use `@Named("<name>")`
+  (`@InjectWireMock` fields still work); `@InjectWireMock` parameters fail
+  fast there.
 - Apps using Micronaut declarative HTTP clients need a JSON module on the
   runtime classpath, for example `io.micronaut.serde:micronaut-serde-jackson`.
   The examples add it.

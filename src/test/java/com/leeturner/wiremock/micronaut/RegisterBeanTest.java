@@ -35,8 +35,7 @@ class RegisterBeanTest {
   }
 
   @Test
-  void injectWireMockParameterDoesNotCompeteWithMicronaut(
-      @Named("users") WireMockServer parameter) {
+  void namedParameterIsResolvedByMicronaut(@Named("users") WireMockServer parameter) {
     assertThat(parameter).isSameAs(injected);
   }
 }

@@ -29,6 +29,11 @@ class ConfigurationResolverTest {
 
   static class InheritsBare extends Bare {}
 
+  @ConfigureWireMock(name = "users", baseUrlProperties = "users.url")
+  abstract static class ConfiguredBase {}
+
+  static class ConfiguredChild extends ConfiguredBase {}
+
   @EnableWireMock
   static class Outer {
     @Nested
@@ -65,6 +70,13 @@ class ConfigurationResolverTest {
     @ConfigureWireMock(name = "b", baseUrlProperties = "shared.url")
   })
   static class ExplicitClash {}
+
+  @Test
+  void configureWireMockOnASuperclassIsInherited() {
+    assertThat(ConfigurationResolver.resolve(ConfiguredChild.class))
+        .extracting(ConfigureWireMock::name)
+        .containsExactly("users");
+  }
 
   @Test
   void unannotatedClassIsNotManaged() {

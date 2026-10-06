@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.leeturner.wiremock.micronaut.InjectWireMock;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
 import org.junit.platform.commons.support.AnnotationSupport;
+import org.junit.platform.commons.support.HierarchyTraversalMode;
+import org.junit.platform.commons.support.ReflectionSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +47,27 @@ public final class WireMockMicronautExtension
               + " bound into Micronaut",
           root.getName());
     }
+    rejectInjectParameters(testClass);
     WireMockServers.getOrStart(testClass);
+  }
+
+  /** micronaut-test claims every unqualified WireMockServer parameter once a bean exists. */
+  private static void rejectInjectParameters(Class<?> testClass) {
+    if (ConfigurationResolver.resolve(testClass).stream().noneMatch(c -> c.registerBean())) {
+      return;
+    }
+    for (Method method :
+        ReflectionSupport.findMethods(testClass, m -> true, HierarchyTraversalMode.BOTTOM_UP)) {
+      for (Parameter parameter : method.getParameters()) {
+        if (parameter.isAnnotationPresent(InjectWireMock.class)) {
+          throw new ExtensionConfigurationException(
+              ("@InjectWireMock method parameters are not supported in test classes with a"
+                      + " registerBean server; inject the server with @Named(\"<name>\") or use an"
+                      + " @InjectWireMock field (%s, parameter '%s' of method %s)")
+                  .formatted(testClass.getName(), parameter.getName(), method.getName()));
+        }
+      }
+    }
   }
 
   @Override
@@ -98,15 +121,7 @@ public final class WireMockMicronautExtension
 
   @Override
   public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext context) {
-    return parameterContext
-        .findAnnotation(InjectWireMock.class)
-        .map(
-            inject -> {
-              RunningServer running =
-                  WireMockServers.getOrStart(context.getRequiredTestClass()).get(inject.value());
-              return running == null || !running.options().registerBean();
-            })
-        .orElse(false);
+    return parameterContext.isAnnotated(InjectWireMock.class);
   }
 
   @Override
