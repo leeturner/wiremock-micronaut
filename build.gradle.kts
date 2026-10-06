@@ -58,7 +58,7 @@ spotless {
 }
 
 mavenPublishing {
-    publishToMavenCentral(automaticRelease = true)
+    publishToMavenCentral(automaticRelease = false)
     signAllPublications()
     coordinates("io.github.leeturner", "wiremock-micronaut", version.toString())
     pom {
