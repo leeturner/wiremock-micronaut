@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/rest/1.0/artist/a74b1b7f-71a5-4011-9441-d0b5e4122711/setlists",
+    "headers": { "x-api-key": { "equalTo": "dummy-setlist-fm-api-key" } }
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "setlists.json"
+  }
+}
