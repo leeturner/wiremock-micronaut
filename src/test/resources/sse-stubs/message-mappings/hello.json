@@ -1,0 +1,15 @@
+{
+  "name": "hello on trigger",
+  "trigger": { "type": "http-stub", "stubId": "bbbbbbbb-0000-4000-8000-000000000001" },
+  "actions": [
+    {
+      "type": "send",
+      "message": { "body": { "data": "hello" } },
+      "channelTarget": {
+        "type": "request-initiated",
+        "channelType": "sse",
+        "requestPattern": { "urlPath": "/events" }
+      }
+    }
+  ]
+}
