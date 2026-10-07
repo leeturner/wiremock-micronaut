@@ -54,10 +54,13 @@ public @interface ConfigureWireMock {
   /** Properties set to {@code https://localhost:<httpsPort>}. */
   String[] httpsBaseUrlProperties() default {"wiremock.server.httpsBaseUrl"};
 
-  /** Classpath root holding {@code mappings}/{@code __files}. */
+  /** Classpath root holding {@code mappings}/{@code __files}/{@code message-mappings}. */
   String filesUnderClasspath() default "";
 
-  /** Directories holding {@code mappings}/{@code __files}; the first existing one is used. */
+  /**
+   * Directories holding {@code mappings}/{@code __files}/{@code message-mappings}; the first
+   * existing one is used.
+   */
   String[] filesUnderDirectory() default {};
 
   /** WireMock extensions; each needs a public no-arg constructor. */

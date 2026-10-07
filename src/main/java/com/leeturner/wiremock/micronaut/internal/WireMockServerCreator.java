@@ -105,7 +105,7 @@ final class WireMockServerCreator {
                   () ->
                       new ExtensionConfigurationException(
                           ("None of filesUnderDirectory %s for WireMock server '%s' on %s contains"
-                                  + " a 'mappings' or '__files' directory.")
+                                  + " a 'mappings', '__files' or 'message-mappings' directory.")
                               .formatted(
                                   Arrays.toString(options.filesUnderDirectory()),
                                   options.name(),
@@ -142,7 +142,8 @@ final class WireMockServerCreator {
         .filter(
             dir ->
                 Files.isDirectory(Path.of(dir, "mappings"))
-                    || Files.isDirectory(Path.of(dir, "__files")))
+                    || Files.isDirectory(Path.of(dir, "__files"))
+                    || Files.isDirectory(Path.of(dir, "message-mappings")))
         .findFirst();
   }
 
