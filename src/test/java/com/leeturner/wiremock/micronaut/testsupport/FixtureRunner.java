@@ -1,12 +1,12 @@
 package com.leeturner.wiremock.micronaut.testsupport;
 
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
-
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
+import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 
@@ -37,12 +37,14 @@ public final class FixtureRunner {
             .flatMap(java.util.Optional::stream)
             .findFirst()
             .orElseThrow(() -> new AssertionError(fixture.getSimpleName() + " did not fail"));
-    return Stream.iterate(failure, t -> t != null, Throwable::getCause)
+    return Stream.iterate(failure, Objects::nonNull, Throwable::getCause)
         .map(t -> t.getClass().getSimpleName() + ": " + t.getMessage())
         .collect(Collectors.joining(" <- "));
   }
 
   private static DiscoverySelector[] selectors(Class<?>... fixtures) {
-    return Arrays.stream(fixtures).map(c -> selectClass(c)).toArray(DiscoverySelector[]::new);
+    return Arrays.stream(fixtures)
+        .map(DiscoverySelectors::selectClass)
+        .toArray(DiscoverySelector[]::new);
   }
 }

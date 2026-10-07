@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
@@ -56,7 +57,8 @@ class WireMockServerCreatorTest {
     static final AtomicReference<String> SEEN = new AtomicReference<>();
 
     @Override
-    public void customize(WireMockConfiguration configuration, ConfigureWireMock options) {
+    public void customize(
+        @NonNull WireMockConfiguration configuration, @NonNull ConfigureWireMock options) {
       SEEN.set(options.name());
       configuration.extensions(new UppercaseTransformer());
     }
@@ -64,7 +66,8 @@ class WireMockServerCreatorTest {
 
   public static class DisableTemplating implements WireMockConfigurationCustomizer {
     @Override
-    public void customize(WireMockConfiguration configuration, ConfigureWireMock options) {
+    public void customize(
+        @NonNull WireMockConfiguration configuration, @NonNull ConfigureWireMock options) {
       configuration.globalTemplating(false);
     }
   }
