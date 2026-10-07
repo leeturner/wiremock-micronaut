@@ -1,0 +1,15 @@
+{
+  "mappings": [
+    {
+      "name": "Live setlist stream",
+      "request": { "method": "GET", "urlPath": "/gigs/radiohead-2026/live" },
+      "response": { "status": 200, "openSseChannel": true }
+    },
+    {
+      "name": "Start the gig",
+      "id": "cccccccc-0000-4000-8000-000000000001",
+      "request": { "method": "POST", "urlPath": "/gigs/radiohead-2026/start" },
+      "response": { "status": 204 }
+    }
+  ]
+}
