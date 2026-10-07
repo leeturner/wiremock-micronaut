@@ -59,7 +59,9 @@ fields above (`@Serdeable`, unknown properties ignored).
 
 ### Error handling
 
-- Upstream 404 from either API → our 404.
+- MusicBrainz 404 → our 404.
+- setlist.fm 404 (what the real API returns for an artist with no setlists) →
+  200 with an empty `recentSetlists`.
 - Any other upstream failure (5xx, connection error) → our 502.
 
 Implemented by catching `HttpClientResponseException` in the service and throwing
@@ -99,6 +101,7 @@ All tests use `@MicronautTest` and `@EnableWireMock` with two servers named
 - `verify` that `x-api-key: dummy-setlist-fm-api-key` and the `User-Agent`
   header are sent.
 - MusicBrainz 404 → our 404.
+- setlist.fm 404 → 200 with empty `recentSetlists`.
 - setlist.fm 500 → our 502.
 
 Neither server configures files, so both also load the default directory

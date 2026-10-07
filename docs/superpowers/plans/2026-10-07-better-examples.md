@@ -36,7 +36,8 @@ plugins 5.0.2), Micronaut Serde, JDK HTTP client, Netty server, WireMock
 - MusicBrainz client: `@Client("${musicbrainz.url}")`, property
   `musicbrainz.url`. setlist.fm client: `@Client("setlist-fm")`, property
   `micronaut.http.services.setlist-fm.url`.
-- Upstream 404 → our 404; any other upstream failure → our 502.
+- MusicBrainz 404 → our 404; setlist.fm 404 → empty `recentSetlists`; any
+  other upstream failure → our 502.
 - Java sources are formatted by Spotless (google-java-format): run
   `./gradlew spotlessApply` before committing Java changes.
 - No changes to the extension's `src/main`.
@@ -63,8 +64,8 @@ Spec-implied inputs no other test covers. Each has a test in the owning task.
    exists only in the default directory, so a wrong working directory fails
    loudly rather than silently passing.
 
-Known product decision, not tested beyond spec: the real setlist.fm returns
-404 when an artist has no setlists; per the spec this becomes our 404.
+setlist.fm returns 404 for an artist with no setlists; that is tested
+(`artistWithoutSetlistsHasNone`) and maps to an empty `recentSetlists`.
 
 ---
 
@@ -381,6 +382,13 @@ class ProgrammaticStubsTest {
   }
 
   @Test
+  void artistWithoutSetlistsHasNone() {
+    setlistFm.stubFor(get(urlPathEqualTo(SETLISTS_PATH)).willReturn(notFound()));
+
+    assertThat(artist().recentSetlists()).isEmpty();
+  }
+
+  @Test
   void upstreamErrorBecomesBadGateway() {
     setlistFm.stubFor(get(urlPathEqualTo(SETLISTS_PATH)).willReturn(serverError()));
 
@@ -559,33 +567,32 @@ public class ArtistService {
   }
 
   public Artist artist(String mbid) {
-    MusicBrainzArtist artist = call(() -> musicBrainz.artist(mbid));
-    SetlistPage page = call(() -> setlistFm.setlists(mbid));
+    MusicBrainzArtist artist =
+        call(() -> musicBrainz.artist(mbid))
+            .orElseThrow(() -> new HttpStatusException(HttpStatus.NOT_FOUND, "Artist not found"));
+    // setlist.fm answers 404 for an artist with no setlists.
     List<Artist.SetlistSummary> setlists =
-        page.setlist() == null
-            ? List.of()
-            : page.setlist().stream()
-                .map(
-                    s ->
-                        new Artist.SetlistSummary(
-                            s.eventDate(), s.venue().name(), s.venue().city().name()))
-                .toList();
+        call(() -> setlistFm.setlists(mbid)).map(SetlistPage::setlist).orElse(List.of()).stream()
+            .map(
+                s ->
+                    new Artist.SetlistSummary(
+                        s.eventDate(), s.venue().name(), s.venue().city().name()))
+            .toList();
     return new Artist(artist.name(), artist.country(), artist.type(), setlists);
   }
 
-  /** Upstream 404 becomes our 404; any other upstream failure becomes 502. */
-  private static <T> T call(Supplier<Optional<T>> upstream) {
+  /** Empty on an upstream 404; any other upstream failure becomes our 502. */
+  private static <T> Optional<T> call(Supplier<Optional<T>> upstream) {
     try {
-      return upstream.get().orElseThrow(ArtistService::notFound);
+      return upstream.get();
     } catch (HttpClientResponseException e) {
-      throw e.getStatus() == HttpStatus.NOT_FOUND ? notFound() : badGateway();
+      if (e.getStatus() == HttpStatus.NOT_FOUND) {
+        return Optional.empty();
+      }
+      throw badGateway();
     } catch (HttpClientException e) {
       throw badGateway();
     }
-  }
-
-  private static HttpStatusException notFound() {
-    return new HttpStatusException(HttpStatus.NOT_FOUND, "Artist not found");
   }
 
   private static HttpStatusException badGateway() {
@@ -635,12 +642,10 @@ public class Application {
 - [ ] **Step 8: Run the tests to verify they pass**
 
 Run: `./gradlew spotlessApply :examples:java:test`
-Expected: PASS, 8 tests (7 in `ProgrammaticStubsTest`, 1 in
+Expected: PASS, 9 tests (8 in `ProgrammaticStubsTest`, 1 in
 `MicronautBomCompatibilityTest`).
 
-If `unknownArtistIsNotFound` gets 502, Micronaut threw on 404 instead of
-returning `Optional.empty()`; `call` already maps that to 404, so check the
-exception type being thrown with `--info`. If deserialization fails on
+`call` handles a 404 whether Micronaut returns `Optional.empty()` or throws. If deserialization fails on
 unknown fields, see Review Focus item 4.
 
 - [ ] **Step 9: Commit**
@@ -926,7 +931,7 @@ These deliberately differ from the classpath ones (a single London show) so
 - [ ] **Step 5: Run all the example's tests to verify they pass**
 
 Run: `./gradlew spotlessApply :examples:java:test`
-Expected: PASS, 11 tests. `ProgrammaticStubsTest` still passes now that the
+Expected: PASS, 12 tests. `ProgrammaticStubsTest` still passes now that the
 default directory exists, because its own stubs are added after the file
 stubs.
 
@@ -1140,6 +1145,13 @@ class ProgrammaticStubsTest {
     }
 
     @Test
+    fun `artist without setlists has none`() {
+        setlistFm.stubFor(get(urlPathEqualTo(SETLISTS_PATH)).willReturn(notFound()))
+
+        assertThat(artist().recentSetlists).isEmpty()
+    }
+
+    @Test
     fun `upstream error becomes bad gateway`() {
         setlistFm.stubFor(get(urlPathEqualTo(SETLISTS_PATH)).willReturn(serverError()))
 
@@ -1312,26 +1324,26 @@ class ArtistService(
 
     fun artist(mbid: String): Artist {
         val artist = call { musicBrainz.artist(mbid) }
-        val page = call { setlistFm.setlists(mbid) }
+            ?: throw HttpStatusException(HttpStatus.NOT_FOUND, "Artist not found")
+        // setlist.fm answers 404 for an artist with no setlists.
+        val setlists = call { setlistFm.setlists(mbid) }?.setlist.orEmpty()
         return Artist(
             name = artist.name,
             country = artist.country,
             type = artist.type,
-            recentSetlists = page.setlist.orEmpty().map { SetlistSummary(it.eventDate, it.venue.name, it.venue.city.name) },
+            recentSetlists = setlists.map { SetlistSummary(it.eventDate, it.venue.name, it.venue.city.name) },
         )
     }
 
-    /** Upstream 404 becomes our 404; any other upstream failure becomes 502. */
-    private fun <T : Any> call(upstream: () -> T?): T =
+    /** Null on an upstream 404; any other upstream failure becomes our 502. */
+    private fun <T : Any> call(upstream: () -> T?): T? =
         try {
-            upstream() ?: throw notFound()
+            upstream()
         } catch (e: HttpClientResponseException) {
-            throw if (e.status == HttpStatus.NOT_FOUND) notFound() else badGateway()
+            if (e.status == HttpStatus.NOT_FOUND) null else throw badGateway()
         } catch (e: HttpClientException) {
             throw badGateway()
         }
-
-    private fun notFound() = HttpStatusException(HttpStatus.NOT_FOUND, "Artist not found")
 
     private fun badGateway() = HttpStatusException(HttpStatus.BAD_GATEWAY, "Upstream call failed")
 }
@@ -1368,7 +1380,7 @@ fun main(args: Array<String>) {
 - [ ] **Step 7: Run the tests to verify they pass**
 
 Run: `./gradlew :examples:kotlin:test`
-Expected: PASS, 7 tests.
+Expected: PASS, 8 tests.
 
 - [ ] **Step 8: Commit**
 
@@ -1540,7 +1552,7 @@ Expected: `diff` prints nothing.
 - [ ] **Step 4: Run all tests to verify they pass**
 
 Run: `./gradlew :examples:kotlin:test`
-Expected: PASS, 10 tests.
+Expected: PASS, 11 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -1575,7 +1587,7 @@ to stub them:
 
 | Test | Technique |
 |---|---|
-| `ProgrammaticStubsTest` | Stubs in the test with `stubFor`, `verify` of request headers, upstream 404/500/connection faults. |
+| `ProgrammaticStubsTest` | Stubs in the test with `stubFor`, `verify` of request headers, MusicBrainz 404, setlist.fm 404 (no setlists), 500 and connection faults. |
 | `ClasspathStubsTest` | One classpath folder per server (`filesUnderClasspath`), bodies from `__files` via `bodyFileName`, and a test stub overriding a file stub. |
 | `DefaultDirectoryTest` | No files configuration: stubs load from `src/test/resources/wiremock`. That directory is shared by every such server. |
 ```
