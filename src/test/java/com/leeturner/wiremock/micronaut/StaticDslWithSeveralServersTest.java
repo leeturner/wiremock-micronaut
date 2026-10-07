@@ -12,11 +12,10 @@ import org.junit.jupiter.api.Test;
 @EnableWireMock({@ConfigureWireMock(name = "a"), @ConfigureWireMock(name = "b")})
 class StaticDslWithSeveralServersTest {
 
-  private static int unusedPort;
-
   @BeforeAll
   static void pointStaticClientNowhere() throws IOException {
     // Runs after the extension's beforeAll and before its beforeEach.
+    int unusedPort;
     try (ServerSocket socket = new ServerSocket(0)) {
       unusedPort = socket.getLocalPort();
     }

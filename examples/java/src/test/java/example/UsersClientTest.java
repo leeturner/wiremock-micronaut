@@ -39,13 +39,14 @@ class UsersClientTest {
         post("/schema")
             .withRequestBody(matchingJsonSchema("{\"type\":\"object\",\"required\":[\"name\"]}"))
             .willReturn(ok("valid")));
-    HttpResponse<String> response =
-        HttpClient.newHttpClient()
-            .send(
-                HttpRequest.newBuilder(URI.create(users.baseUrl() + "/schema"))
-                    .POST(HttpRequest.BodyPublishers.ofString("{\"name\":\"lee\"}"))
-                    .build(),
-                HttpResponse.BodyHandlers.ofString());
-    assertThat(response.body()).isEqualTo("valid");
+    try (HttpClient client = HttpClient.newHttpClient()) {
+      HttpResponse<String> response =
+          client.send(
+              HttpRequest.newBuilder(URI.create(users.baseUrl() + "/schema"))
+                  .POST(HttpRequest.BodyPublishers.ofString("{\"name\":\"lee\"}"))
+                  .build(),
+              HttpResponse.BodyHandlers.ofString());
+      assertThat(response.body()).isEqualTo("valid");
+    }
   }
 }
