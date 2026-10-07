@@ -1,0 +1,33 @@
+{
+  "name": "Radiohead 2026 setlist",
+  "trigger": { "type": "http-stub", "stubId": "cccccccc-0000-4000-8000-000000000001" },
+  "actions": [
+    {
+      "type": "send",
+      "message": { "body": { "data": "Airbag" }, "headers": { "event": "song" } },
+      "channelTarget": {
+        "type": "request-initiated",
+        "channelType": "sse",
+        "requestPattern": { "urlPath": "/gigs/radiohead-2026/live" }
+      }
+    },
+    {
+      "type": "send",
+      "message": { "body": { "data": "Paranoid Android" }, "headers": { "event": "song" } },
+      "channelTarget": {
+        "type": "request-initiated",
+        "channelType": "sse",
+        "requestPattern": { "urlPath": "/gigs/radiohead-2026/live" }
+      }
+    },
+    {
+      "type": "send",
+      "message": { "body": { "data": "encore over" }, "headers": { "event": "end" } },
+      "channelTarget": {
+        "type": "request-initiated",
+        "channelType": "sse",
+        "requestPattern": { "urlPath": "/gigs/radiohead-2026/live" }
+      }
+    }
+  ]
+}
