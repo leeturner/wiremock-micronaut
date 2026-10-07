@@ -42,9 +42,10 @@ class LiveSetlistTest {
 
     @Test
     fun `streams songs until the gig ends`() {
+        val channelsBefore = liveSetlist.listAllMessageChannels().channels.size
         val songs = service.songs(gig).collectList().toFuture()
 
-        awaitOpenChannel()
+        awaitChannelCount(channelsBefore + 1)
         HttpClient.newHttpClient().send(
             HttpRequest.newBuilder(URI.create("${liveSetlist.baseUrl()}/gigs/$gig/start"))
                 .POST(HttpRequest.BodyPublishers.noBody())
@@ -61,10 +62,13 @@ class LiveSetlistTest {
         ).isPresent
     }
 
-    /** Trigger only once the app is connected: events sent before then have no channel. */
-    private fun awaitOpenChannel() {
+    /**
+     * Trigger only once the app is connected: events sent before then have no channel. Count
+     * channels rather than checking for any, as disconnected ones can stay listed.
+     */
+    private fun awaitChannelCount(count: Int) {
         val deadline = System.nanoTime() + SECONDS.toNanos(5)
-        while (liveSetlist.listAllMessageChannels().channels.isEmpty()) {
+        while (liveSetlist.listAllMessageChannels().channels.size < count) {
             if (System.nanoTime() > deadline) throw AssertionError("The app never opened the SSE stream")
             Thread.sleep(20)
         }

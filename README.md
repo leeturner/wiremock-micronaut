@@ -178,8 +178,10 @@ liveSetlist.waitForMessageEvent(
 - Message stubs and the message journal are reset before each test, like
   HTTP stubs. Stubs from `message-mappings` are reloaded.
 - Trigger events only after your client has connected. Events sent before
-  then have no channel and are dropped. Wait until
-  `server.listAllMessageChannels().getChannels()` is non-empty.
+  then have no channel and are dropped. Note the size of
+  `server.listAllMessageChannels().getChannels()` before connecting and
+  wait for it to grow. Don't just wait for it to be non-empty: a
+  disconnected SSE channel stays listed until a send to it fails.
 - To consume SSE with a Micronaut declarative client, use the Netty
   `io.micronaut:micronaut-http-client`. The JDK client does not support
   SSE.

@@ -42,9 +42,10 @@ class LiveSetlistTest {
 
   @Test
   void streamsSongsUntilTheGigEnds() throws Exception {
+    int channelsBefore = liveSetlist.listAllMessageChannels().getChannels().size();
     CompletableFuture<List<String>> songs = service.songs(GIG).collectList().toFuture();
 
-    awaitOpenChannel();
+    awaitChannelCount(channelsBefore + 1);
     HttpClient.newHttpClient()
         .send(
             HttpRequest.newBuilder(URI.create(liveSetlist.baseUrl() + "/gigs/" + GIG + "/start"))
@@ -59,10 +60,13 @@ class LiveSetlistTest {
         .isPresent();
   }
 
-  /** Trigger only once the app is connected: events sent before then have no channel. */
-  private void awaitOpenChannel() throws InterruptedException {
+  /**
+   * Trigger only once the app is connected: events sent before then have no channel. Count channels
+   * rather than checking for any, as disconnected ones can stay listed.
+   */
+  private void awaitChannelCount(int count) throws InterruptedException {
     long deadline = System.nanoTime() + SECONDS.toNanos(5);
-    while (liveSetlist.listAllMessageChannels().getChannels().isEmpty()) {
+    while (liveSetlist.listAllMessageChannels().getChannels().size() < count) {
       if (System.nanoTime() > deadline) {
         throw new AssertionError("The app never opened the SSE stream");
       }

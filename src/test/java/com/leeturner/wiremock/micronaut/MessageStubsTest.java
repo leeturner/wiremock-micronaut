@@ -38,8 +38,9 @@ class MessageStubsTest {
                     .onChannelsMatching(
                         newRequestPattern().withUrl(urlPathEqualTo("/events")).build())));
 
+    int channelsBefore = server.listAllMessageChannels().getChannels().size();
     try (Stream<String> lines = Http.stream(server.baseUrl() + "/events").body()) {
-      awaitOpenChannel();
+      awaitChannelCount(channelsBefore + 1);
       Http.get(server.baseUrl() + "/trigger");
 
       String data =
@@ -61,12 +62,15 @@ class MessageStubsTest {
         .extracting(MessageStubMapping::getName)
         .containsExactly("hello on trigger");
     assertThat(server.getAllMessageServeEvents()).isEmpty();
+    // A disconnected SSE channel stays listed until a send to it fails, so waiting for
+    // "any channel" would return at once here; wait for the count to rise instead.
+    assertThat(server.listAllMessageChannels().getChannels()).isNotEmpty();
   }
 
   /** Events sent before the client connects have no channel and are dropped. */
-  private void awaitOpenChannel() throws InterruptedException {
+  private void awaitChannelCount(int count) throws InterruptedException {
     long deadline = System.nanoTime() + SECONDS.toNanos(5);
-    while (server.listAllMessageChannels().getChannels().isEmpty()) {
+    while (server.listAllMessageChannels().getChannels().size() < count) {
       if (System.nanoTime() > deadline) {
         throw new AssertionError("SSE channel never opened");
       }
