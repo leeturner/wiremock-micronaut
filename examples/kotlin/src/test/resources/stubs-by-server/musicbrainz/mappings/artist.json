@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/ws/2/artist/a74b1b7f-71a5-4011-9441-d0b5e4122711",
+    "queryParameters": { "fmt": { "equalTo": "json" } },
+    "headers": { "User-Agent": { "equalTo": "wiremock-micronaut-example/1.0" } }
+  },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "radiohead.json"
+  }
+}
