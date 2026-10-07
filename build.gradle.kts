@@ -58,6 +58,7 @@ tasks.test {
 spotless {
     java {
         target("src/**/*.java", "examples/**/*.java")
+        targetExclude("examples/**/build/**")
         googleJavaFormat(libs.versions.google.java.format.get())
     }
 }
