@@ -39,10 +39,13 @@ It is assembled from two upstream calls:
 
 | Upstream    | Client                     | Request                                                                                       |
 |-------------|----------------------------|-----------------------------------------------------------------------------------------------|
-| MusicBrainz | `@Client("musicbrainz")`   | `GET /ws/2/artist/{mbid}?fmt=json`, header `User-Agent: wiremock-micronaut-example/1.0`      |
+| MusicBrainz | `@Client("${musicbrainz.url}")` | `GET /ws/2/artist/{mbid}?fmt=json`, header `User-Agent: wiremock-micronaut-example/1.0`      |
 | setlist.fm  | `@Client("setlist-fm")`    | `GET /rest/1.0/artist/{mbid}/setlists`, headers `x-api-key: ${setlist-fm.api-key}`, `Accept: application/json` |
 
-Paths, headers and JSON shapes follow the real APIs; DTOs are trimmed to the
+The two clients deliberately use the two declaration styles the README
+documents: a URL placeholder (MusicBrainz) and a service id (setlist.fm).
+`Accept: application/json` is the Micronaut client default, so only `x-api-key`
+is declared. Paths, headers and JSON shapes follow the real APIs; DTOs are trimmed to the
 fields above (`@Serdeable`, unknown properties ignored).
 
 ### Components (package `example`)
@@ -65,7 +68,7 @@ Implemented by catching `HttpClientResponseException` in the service and throwin
 ### Configuration (`src/main/resources/application.properties`)
 
 ```properties
-micronaut.http.services.musicbrainz.url=https://musicbrainz.org
+musicbrainz.url=https://musicbrainz.org
 micronaut.http.services.setlist-fm.url=https://api.setlist.fm
 setlist-fm.api-key=dummy-setlist-fm-api-key
 ```
@@ -87,8 +90,8 @@ and keeps `micronaut-http-client-jdk`. Tests call our endpoint via an injected
 ## Tests (identical set per language)
 
 All tests use `@MicronautTest` and `@EnableWireMock` with two servers named
-`musicbrainz` and `setlist-fm`, each redirecting its service URL with
-`baseUrlProperties = "micronaut.http.services.<name>.url"`.
+`musicbrainz` and `setlist-fm`, redirected with `baseUrlProperties =
+"musicbrainz.url"` and `"micronaut.http.services.setlist-fm.url"`.
 
 ### `ProgrammaticStubsTest`: stubs in code
 
@@ -120,6 +123,14 @@ default folder is picked up.
 - A class comment explains that the default directory is shared by every
   server without files config (same as wiremock-spring-boot), which is why only
   one server relies on it.
+
+### Kept from the old examples
+
+- Java `MicronautBomCompatibilityTest`: the existing `matchingJsonSchema`
+  check, which catches BOM-driven dependency conflicts (see the original
+  spec, "Consumer smoke tests").
+- Kotlin `ProgrammaticStubsTest` takes one server as an `@InjectWireMock`
+  test-method parameter, keeping the Kotlin parameter-injection check.
 
 ## Stub file layout (per example module)
 
