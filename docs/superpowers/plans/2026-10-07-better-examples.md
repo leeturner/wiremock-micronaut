@@ -206,6 +206,8 @@ Replace `examples/java/src/main/resources/application.properties` with:
 musicbrainz.url=https://musicbrainz.org
 micronaut.http.services.setlist-fm.url=https://api.setlist.fm
 setlist-fm.api-key=dummy-setlist-fm-api-key
+# Always write recentSetlists (even when empty) and null fields.
+micronaut.serde.serialization.inclusion=always
 ```
 
 Delete the old example code:
@@ -430,7 +432,7 @@ class ProgrammaticStubsTest {
     assertThatThrownBy(() -> http.toBlocking().retrieve("/artists/" + MBID))
         .isInstanceOfSatisfying(
             HttpClientResponseException.class,
-            e -> assertThat(e.getStatus()).isEqualTo(expected));
+            e -> assertThat(e.getStatus().getCode()).isEqualTo(expected.getCode()));
   }
 }
 ```
@@ -608,8 +610,12 @@ package example;
 
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.scheduling.TaskExecutors;
+import io.micronaut.scheduling.annotation.ExecuteOn;
 
+/** The clients block, so requests run off the event loop. */
 @Controller("/artists")
+@ExecuteOn(TaskExecutors.BLOCKING)
 public class ArtistController {
 
   private final ArtistService artists;
@@ -754,7 +760,7 @@ class ClasspathStubsTest {
     assertThatThrownBy(() -> http.toBlocking().retrieve("/artists/" + MBID))
         .isInstanceOfSatisfying(
             HttpClientResponseException.class,
-            e -> assertThat(e.getStatus()).isEqualTo(HttpStatus.BAD_GATEWAY));
+            e -> assertThat(e.getStatus().getCode()).isEqualTo(HttpStatus.BAD_GATEWAY.getCode()));
   }
 }
 ```
@@ -1011,6 +1017,8 @@ Replace `examples/kotlin/src/main/resources/application.properties` with:
 musicbrainz.url=https://musicbrainz.org
 micronaut.http.services.setlist-fm.url=https://api.setlist.fm
 setlist-fm.api-key=dummy-setlist-fm-api-key
+# Always write recentSetlists (even when empty) and null fields.
+micronaut.serde.serialization.inclusion=always
 ```
 
 Delete the old example code:
@@ -1191,7 +1199,7 @@ class ProgrammaticStubsTest {
     private fun assertStatus(expected: HttpStatus) {
         assertThatThrownBy { http.toBlocking().retrieve("/artists/$MBID") }
             .isInstanceOfSatisfying(HttpClientResponseException::class.java) {
-                assertThat(it.status).isEqualTo(expected)
+                assertThat(it.status.code).isEqualTo(expected.code)
             }
     }
 }
@@ -1356,8 +1364,12 @@ package example
 
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.scheduling.TaskExecutors
+import io.micronaut.scheduling.annotation.ExecuteOn
 
+/** The clients block, so requests run off the event loop. */
 @Controller("/artists")
+@ExecuteOn(TaskExecutors.BLOCKING)
 class ArtistController(private val artists: ArtistService) {
 
     @Get("/{mbid}")
@@ -1481,7 +1493,7 @@ class ClasspathStubsTest {
 
         assertThatThrownBy { http.toBlocking().retrieve("/artists/$mbid") }
             .isInstanceOfSatisfying(HttpClientResponseException::class.java) {
-                assertThat(it.status).isEqualTo(HttpStatus.BAD_GATEWAY)
+                assertThat(it.status.code).isEqualTo(HttpStatus.BAD_GATEWAY.code)
             }
     }
 }

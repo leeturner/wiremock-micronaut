@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.spotless)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.micronaut.library) apply false
+    alias(libs.plugins.micronaut.application) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.allopen) apply false
     alias(libs.plugins.ksp) apply false

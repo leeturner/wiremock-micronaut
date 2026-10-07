@@ -73,6 +73,8 @@ Implemented by catching `HttpClientResponseException` in the service and throwin
 musicbrainz.url=https://musicbrainz.org
 micronaut.http.services.setlist-fm.url=https://api.setlist.fm
 setlist-fm.api-key=dummy-setlist-fm-api-key
+# Always write recentSetlists (even when empty) and null fields.
+micronaut.serde.serialization.inclusion=always
 ```
 
 The API key is an obvious dummy; tests verify it is sent.
