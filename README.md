@@ -146,6 +146,20 @@ duplicates fail fast.
   runtime classpath, for example `io.micronaut.serde:micronaut-serde-jackson`.
   The examples add it.
 
+## Examples
+
+[`examples/java`](examples/java) and [`examples/kotlin`](examples/kotlin) are
+the same small Micronaut service: `GET /artists/{mbid}` combines an artist
+from MusicBrainz (a `${musicbrainz.url}` client) with recent setlists from
+setlist.fm (a `setlist-fm` service id client). Each test class shows one way
+to stub them:
+
+| Test | Technique |
+|---|---|
+| `ProgrammaticStubsTest` | Stubs in the test with `stubFor`, `verify` of request headers, MusicBrainz 404, setlist.fm 404 (no setlists), 500 and connection faults. |
+| `ClasspathStubsTest` | One classpath folder per server (`filesUnderClasspath`), bodies from `__files` via `bodyFileName`, and a test stub overriding a file stub. |
+| `DefaultDirectoryTest` | No files configuration: stubs load from `src/test/resources/wiremock`. That directory is shared by every such server. |
+
 ## Migrating from `io.github.nahuel92:wiremock-micronaut`
 
 | Before | After |

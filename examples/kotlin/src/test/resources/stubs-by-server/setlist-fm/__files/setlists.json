@@ -1,0 +1,26 @@
+{
+  "type": "setlists",
+  "itemsPerPage": 20,
+  "page": 1,
+  "total": 2,
+  "setlist": [
+    {
+      "eventDate": "14-11-2025",
+      "artist": { "mbid": "a74b1b7f-71a5-4011-9441-d0b5e4122711", "name": "Radiohead" },
+      "venue": {
+        "name": "Unipol Arena",
+        "city": { "name": "Bologna", "country": { "code": "IT", "name": "Italy" } }
+      },
+      "tour": { "name": "2025 European Tour" }
+    },
+    {
+      "eventDate": "04-11-2025",
+      "artist": { "mbid": "a74b1b7f-71a5-4011-9441-d0b5e4122711", "name": "Radiohead" },
+      "venue": {
+        "name": "Movistar Arena",
+        "city": { "name": "Madrid", "country": { "code": "ES", "name": "Spain" } }
+      },
+      "tour": { "name": "2025 European Tour" }
+    }
+  ]
+}

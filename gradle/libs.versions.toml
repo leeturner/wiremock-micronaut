@@ -12,6 +12,7 @@ jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 spotless = { id = "com.diffplug.spotless", version = "8.10.3" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
 micronaut-library = { id = "io.micronaut.library", version = "5.0.2" }
+micronaut-application = { id = "io.micronaut.application", version = "5.0.2" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.20" }
 kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version = "2.4.20" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.12" }
