@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.extension.ResponseTransformerV2;
 import com.github.tomakehurst.wiremock.http.Response;
+import com.github.tomakehurst.wiremock.message.MessageStubMapping;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.leeturner.wiremock.micronaut.ConfigureWireMock;
 import com.leeturner.wiremock.micronaut.WireMockConfigurationCustomizer;
@@ -93,6 +94,9 @@ class WireMockServerCreatorTest {
   @ConfigureWireMock(filesUnderDirectory = "does-not-exist")
   static class MissingDirectory {}
 
+  @ConfigureWireMock(filesUnderDirectory = "src/test/message-stubs-only")
+  static class MessageStubsOnlyDirectory {}
+
   @ConfigureWireMock(extensions = UppercaseTransformer.class)
   static class WithExtension {}
 
@@ -163,7 +167,16 @@ class WireMockServerCreatorTest {
   void missingDirectoryFails() {
     assertThatThrownBy(() -> create(MissingDirectory.class))
         .isInstanceOf(ExtensionConfigurationException.class)
-        .hasMessageContaining("None of filesUnderDirectory [does-not-exist]");
+        .hasMessageContaining("None of filesUnderDirectory [does-not-exist]")
+        .hasMessageContaining("'message-mappings'");
+  }
+
+  @Test
+  void directoryWithOnlyMessageMappingsIsUsed() {
+    WireMockServer server = create(MessageStubsOnlyDirectory.class);
+    assertThat(server.getMessageStubMappingsList())
+        .extracting(MessageStubMapping::getName)
+        .containsExactly("message-only");
   }
 
   @Test
@@ -213,7 +226,7 @@ class WireMockServerCreatorTest {
   }
 
   @Test
-  void firstCandidateWithMappingsOrFilesWins(@TempDir Path tmp) throws IOException {
+  void firstCandidateWithAnyStubFolderWins(@TempDir Path tmp) throws IOException {
     Path empty = Files.createDirectory(tmp.resolve("empty"));
     Path withFiles = Files.createDirectories(tmp.resolve("withFiles/__files")).getParent();
     Path withMappings = Files.createDirectories(tmp.resolve("withMappings/mappings")).getParent();
@@ -229,6 +242,12 @@ class WireMockServerCreatorTest {
             WireMockServerCreator.firstExistingStubDirectory(
                 List.of(empty.toString(), withMappings.toString())))
         .contains(withMappings.toString());
+    Path withMessages =
+        Files.createDirectories(tmp.resolve("withMessages/message-mappings")).getParent();
+    assertThat(
+            WireMockServerCreator.firstExistingStubDirectory(
+                List.of(empty.toString(), withMessages.toString())))
+        .contains(withMessages.toString());
     assertThat(WireMockServerCreator.firstExistingStubDirectory(List.of(empty.toString())))
         .isEmpty();
   }
