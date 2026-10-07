@@ -2,7 +2,6 @@ package example;
 
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.exceptions.HttpClientException;
-import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.http.exceptions.HttpStatusException;
 import jakarta.inject.Singleton;
 import java.util.List;
@@ -35,21 +34,15 @@ public class ArtistService {
     return new Artist(artist.name(), artist.country(), artist.type(), setlists);
   }
 
-  /** Empty on an upstream 404; any other upstream failure becomes our 502. */
+  /**
+   * The clients already turn a 404 into an empty Optional; any other upstream failure becomes our
+   * 502.
+   */
   private static <T> Optional<T> call(Supplier<Optional<T>> upstream) {
     try {
       return upstream.get();
-    } catch (HttpClientResponseException e) {
-      if (e.getStatus() == HttpStatus.NOT_FOUND) {
-        return Optional.empty();
-      }
-      throw badGateway();
     } catch (HttpClientException e) {
-      throw badGateway();
+      throw new HttpStatusException(HttpStatus.BAD_GATEWAY, "Upstream call failed");
     }
-  }
-
-  private static HttpStatusException badGateway() {
-    return new HttpStatusException(HttpStatus.BAD_GATEWAY, "Upstream call failed");
   }
 }

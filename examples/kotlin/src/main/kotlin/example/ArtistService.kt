@@ -2,7 +2,6 @@ package example
 
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientException
-import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.http.exceptions.HttpStatusException
 import jakarta.inject.Singleton
 
@@ -25,15 +24,11 @@ class ArtistService(
         )
     }
 
-    /** Null on an upstream 404; any other upstream failure becomes our 502. */
+    /** The clients already turn a 404 into null; any other upstream failure becomes our 502. */
     private fun <T : Any> call(upstream: () -> T?): T? =
         try {
             upstream()
-        } catch (e: HttpClientResponseException) {
-            if (e.status == HttpStatus.NOT_FOUND) null else throw badGateway()
         } catch (e: HttpClientException) {
-            throw badGateway()
+            throw HttpStatusException(HttpStatus.BAD_GATEWAY, "Upstream call failed")
         }
-
-    private fun badGateway() = HttpStatusException(HttpStatus.BAD_GATEWAY, "Upstream call failed")
 }
