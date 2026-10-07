@@ -103,8 +103,8 @@ bind that key instead.
 | `httpsPortProperties` | `wiremock.server.httpsPort` | Properties set to the HTTPS port. |
 | `baseUrlProperties` | `wiremock.server.baseUrl` | Properties set to `http://localhost:<port>`. |
 | `httpsBaseUrlProperties` | `wiremock.server.httpsBaseUrl` | Properties set to `https://localhost:<httpsPort>`. |
-| `filesUnderClasspath` | `""` | Classpath root with `mappings`/`__files`. |
-| `filesUnderDirectory` | `{}` | Directories with `mappings`/`__files` (first existing wins; takes precedence over classpath). |
+| `filesUnderClasspath` | `""` | Classpath root with `mappings`/`__files`/`message-mappings`. |
+| `filesUnderDirectory` | `{}` | Directories with `mappings`/`__files`/`message-mappings` (first existing wins; takes precedence over classpath). |
 | `extensions` / `extensionFactories` | `{}` | WireMock extensions (public no-arg constructor). |
 | `configurationCustomizers` | `{}` | `WireMockConfigurationCustomizer`s, applied last. |
 | `resetWireMockServer` | `true` | Reset before each test. |
@@ -132,6 +132,60 @@ Default property names shared by several servers are not bound, because
 they would be ambiguous. Give each server its own property names. Explicit
 duplicates fail fast.
 
+## Message stubs and server-sent events
+
+WireMock's message stubs and SSE need no extra configuration. Put message
+stubs in `message-mappings`, next to `mappings`:
+
+```
+stubs-by-server/live-setlist/
+  mappings/live.json                     # opens the SSE stream, plus a trigger stub
+  message-mappings/live-setlist.json     # what to send when the trigger is hit
+```
+
+An HTTP stub opens the stream:
+
+```json
+{ "request": { "method": "GET", "urlPath": "/gigs/radiohead-2026/live" },
+  "response": { "status": 200, "openSseChannel": true } }
+```
+
+A message stub sends events to it when another stub (by `id`) is hit:
+
+```json
+{ "trigger": { "type": "http-stub", "stubId": "cccccccc-0000-4000-8000-000000000001" },
+  "actions": [ { "type": "send",
+    "message": { "body": { "data": "Airbag" }, "headers": { "event": "song" } },
+    "channelTarget": { "type": "request-initiated", "channelType": "sse",
+                       "requestPattern": { "urlPath": "/gigs/radiohead-2026/live" } } } ] }
+```
+
+The Java DSL works on an injected server or, with one server, the static
+`WireMock` methods:
+
+```java
+liveSetlist.messageStubFor(
+    message()
+        .triggeredByHttpRequest(newRequestPattern().withUrl(urlPathEqualTo("/start")))
+        .willTriggerActions(
+            sendSse("Airbag").withEventName("song")
+                .onChannelsMatching(newRequestPattern().withUrl(urlPathEqualTo("/live")).build())));
+
+liveSetlist.waitForMessageEvent(
+    messagePattern().withBody(equalTo("Airbag")).build(), Duration.ofSeconds(5));
+```
+
+- Message stubs and the message journal are reset before each test, like
+  HTTP stubs. Stubs from `message-mappings` are reloaded.
+- Trigger events only after your client has connected. Events sent before
+  then have no channel and are dropped. Wait until
+  `server.listAllMessageChannels().getChannels()` is non-empty.
+- To consume SSE with a Micronaut declarative client, use the Netty
+  `io.micronaut:micronaut-http-client`. The JDK client does not support
+  SSE.
+- WebSockets work the same way, with `openWebsocketChannel` and
+  `"channelType": "websocket"`.
+
 ## Gotchas
 
 - `@EnableWireMock`/`@ConfigureWireMock` belong on the top-level test
@@ -151,14 +205,16 @@ duplicates fail fast.
 [`examples/java`](examples/java) and [`examples/kotlin`](examples/kotlin) are
 the same small Micronaut service: `GET /artists/{mbid}` combines an artist
 from MusicBrainz (a `${musicbrainz.url}` client) with recent setlists from
-setlist.fm (a `setlist-fm` service id client). Each test class shows one way
-to stub them:
+setlist.fm (a `setlist-fm` service id client), and `LiveSetlistService`
+follows a gig's setlist from an SSE feed (a `live-setlist` service id
+client). Each test class shows one way to stub them:
 
 | Test | Technique |
 |---|---|
 | `ProgrammaticStubsTest` | Stubs in the test with `stubFor`, `verify` of request headers, MusicBrainz 404, setlist.fm 404 (no setlists), 500 and connection faults. |
 | `ClasspathStubsTest` | One classpath folder per server (`filesUnderClasspath`), bodies from `__files` via `bodyFileName`, and a test stub overriding a file stub. |
 | `DefaultDirectoryTest` | No files configuration: stubs load from `src/test/resources/wiremock`. That directory is shared by every such server. |
+| `LiveSetlistTest` | SSE: `mappings` opens the stream, `message-mappings` sends the songs when a trigger stub is hit, and `waitForMessageEvent` verifies what was sent. |
 
 ## Migrating from `io.github.nahuel92:wiremock-micronaut`
 
