@@ -16,3 +16,32 @@ jobs:
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v6
       - run: ./gradlew build
+  pyronaut-example:
+    runs-on: ubuntu-latest
+    env:
+      GRAALPY: graalpy3.13-25.4.4
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v6
+      # The example depends on this build, not the release on Maven Central.
+      - run: ./gradlew publishToMavenLocal
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - run: pip install pyronaut==0.1.0
+      - name: Install GraalPy
+        run: |
+          mkdir -p "$RUNNER_TEMP/graalpy"
+          curl -fsSL "https://github.com/oracle/graalpython/releases/download/graal-25.4.4/$GRAALPY-linux-amd64.tar.gz" \
+            | tar -xz --strip-components=1 -C "$RUNNER_TEMP/graalpy"
+          echo "$RUNNER_TEMP/graalpy/bin" >> "$GITHUB_PATH"
+      - run: pyronaut setup --progress off
+      - working-directory: examples/pyronaut
+        run: |
+          graalpy -m venv .venv
+          pyronaut install
+          pyronaut test
