@@ -15,6 +15,8 @@ import com.leeturner.wiremock.micronaut.ConfigureWireMock;
 import com.leeturner.wiremock.micronaut.WireMockConfigurationCustomizer;
 import com.leeturner.wiremock.micronaut.testsupport.Http;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -85,6 +87,9 @@ class WireMockServerCreatorTest {
   @ConfigureWireMock(filesUnderClasspath = "classpath-stubs")
   static class ClasspathStubs {}
 
+  @ConfigureWireMock(filesUnderClasspath = "context-only-stubs")
+  static class ContextOnlyClasspathStubs {}
+
   @ConfigureWireMock(filesUnderClasspath = "missing-stubs")
   static class MissingClasspath {}
 
@@ -147,6 +152,28 @@ class WireMockServerCreatorTest {
   void loadsStubsFromTheClasspath() {
     WireMockServer server = create(ClasspathStubs.class);
     assertThat(Http.get(server.baseUrl() + "/from-classpath").body()).isEqualTo("classpath");
+  }
+
+  /** Pyronaut puts test resources on the context class loader only, not WireMock's own. */
+  @Test
+  void loadsClasspathStubsVisibleOnlyToTheContextClassLoader(@TempDir Path tmp) throws IOException {
+    Path mappings = Files.createDirectories(tmp.resolve("context-only-stubs/mappings"));
+    Files.writeString(
+        mappings.resolve("stub.json"),
+        """
+        {"request": {"method": "GET", "url": "/from-context"},
+         "response": {"status": 200, "body": "context"}}
+        """);
+    Thread thread = Thread.currentThread();
+    ClassLoader original = thread.getContextClassLoader();
+    try (URLClassLoader contextOnly =
+        new URLClassLoader(new URL[] {tmp.toUri().toURL()}, original)) {
+      thread.setContextClassLoader(contextOnly);
+      WireMockServer server = create(ContextOnlyClasspathStubs.class);
+      assertThat(Http.get(server.baseUrl() + "/from-context").body()).isEqualTo("context");
+    } finally {
+      thread.setContextClassLoader(original);
+    }
   }
 
   @Test
