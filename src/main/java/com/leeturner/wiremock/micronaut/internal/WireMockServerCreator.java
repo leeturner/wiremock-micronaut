@@ -1,6 +1,7 @@
 package com.leeturner.wiremock.micronaut.internal;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.extension.Extension;
 import com.github.tomakehurst.wiremock.extension.ExtensionFactory;
@@ -114,14 +115,17 @@ final class WireMockServerCreator {
       config.usingFilesUnderDirectory(dir);
     } else if (!options.filesUnderClasspath().isBlank()) {
       String resource = options.filesUnderClasspath();
-      if (Thread.currentThread().getContextClassLoader().getResource(resource) == null) {
+      ClassLoader loader = Thread.currentThread().getContextClassLoader();
+      if (loader.getResource(resource) == null) {
         throw new ExtensionConfigurationException(
             ("filesUnderClasspath '%s' for WireMock server '%s' on %s was not found on the"
                     + " classpath.")
                 .formatted(resource, options.name(), rootTestClassName));
       }
       LOG.debug("WireMock '{}' serves stubs from classpath {}", options.name(), resource);
-      config.usingFilesUnderClasspath(resource);
+      // WireMock's usingFilesUnderClasspath prefers its own class loader, which can't see test
+      // resources when they are only on the context class loader (as under Pyronaut).
+      config.fileSource(new ClasspathFileSource(loader, resource));
     } else {
       firstExistingStubDirectory(ConfigureWireMock.DEFAULT_FILES_UNDER_DIRECTORY)
           .ifPresentOrElse(
