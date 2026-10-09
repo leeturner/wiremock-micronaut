@@ -202,10 +202,59 @@ liveSetlist.waitForMessageEvent(
   runtime classpath, for example `io.micronaut.serde:micronaut-serde-jackson`.
   The examples add it.
 
+## Pyronaut
+
+[Pyronaut](https://pyronaut.io) apps are Micronaut apps written in Python.
+The extension works in their JUnit 5 tests, whether written in Java
+(`test-java/`) or as Python test modules. pytest tests don't run through
+JUnit, so the extension does nothing there.
+
+```toml
+[tool.pyronaut.dependencies]
+test = [
+    "io.micronaut.test:micronaut-test-junit5",
+    "io.github.leeturner:wiremock-micronaut:<version>",
+]
+
+[tool.pyronaut.test]
+engine = "junit"  # or "both" to run pytest tests too
+```
+
+A Python test module calls the annotations at module level:
+
+```python
+MicronautTest()
+EnableWireMock(
+    ConfigureWireMock(name="users", baseUrlProperties=["users.url"], registerBean=True))
+
+client: Annotated[UsersClient, Inject]
+users: Annotated[WireMockServer, Inject, Named("users")]
+
+@Test
+def test_fetches_a_user():
+    users.stubFor(WireMock.get("/users/1").willReturn(WireMock.ok("alice")))
+    assert str(client.user("1")) == "alice"
+```
+
+- `@InjectWireMock` does nothing in a Python module, because Pyronaut only
+  injects module attributes marked `Inject`. Set `registerBean=True` and
+  inject the server with `Named("<name>")`, as above. With a single server,
+  the static `WireMock.stubFor(...)` also works.
+- Python can't import Java static methods: write `WireMock.get(...)`, not
+  `get(...)`.
+- Annotation attributes keep their Java names (`baseUrlProperties`,
+  `startApplication`). Array attributes take lists.
+- `filesUnderClasspath` looks in Pyronaut's test resources (`tests-config/`).
+  This needs a version later than 0.1.0. Default stub directories are
+  relative to the project, for example `wiremock/`.
+- In pytest, start a `WireMockServer` in a fixture and pass its `baseUrl()`
+  to `MicronautTest(properties=...)`.
+
 ## Examples
 
-[`examples/java`](examples/java) and [`examples/kotlin`](examples/kotlin) are
-the same small Micronaut service: `GET /artists/{mbid}` combines an artist
+[`examples/java`](examples/java), [`examples/kotlin`](examples/kotlin) and
+[`examples/pyronaut`](examples/pyronaut) are the same small Micronaut
+service: `GET /artists/{mbid}` combines an artist
 from MusicBrainz (a `${musicbrainz.url}` client) with recent setlists from
 setlist.fm (a `setlist-fm` service id client), and `LiveSetlistService`
 follows a gig's setlist from an SSE feed (a `live-setlist` service id
@@ -215,8 +264,18 @@ client). Each test class shows one way to stub them:
 |---|---|
 | `ProgrammaticStubsTest` | Stubs in the test with `stubFor`, `verify` of request headers, MusicBrainz 404, setlist.fm 404 (no setlists), 500 and connection faults. |
 | `ClasspathStubsTest` | One classpath folder per server (`filesUnderClasspath`), bodies from `__files` via `bodyFileName`, and a test stub overriding a file stub. |
-| `DefaultDirectoryTest` | No files configuration: stubs load from `src/test/resources/wiremock`. That directory is shared by every such server. |
+| `DefaultDirectoryTest` | No files configuration: stubs load from `src/test/resources/wiremock` (`wiremock/` in the Pyronaut example). That directory is shared by every such server. |
 | `LiveSetlistTest` | SSE: `mappings` opens the stream, `message-mappings` sends the songs when a trigger stub is hit, and `waitForMessageEvent` verifies what was sent. |
+
+The Pyronaut example uses this repo's code, not a release. Run it with
+[GraalPy](https://github.com/oracle/graalpython) on your `PATH`:
+
+```shell
+./gradlew publishToMavenLocal
+cd examples/pyronaut
+pip install pyronaut && pyronaut setup
+graalpy -m venv .venv && pyronaut install && pyronaut test
+```
 
 ## Migrating from `io.github.nahuel92:wiremock-micronaut`
 
