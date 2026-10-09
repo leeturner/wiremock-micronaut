@@ -249,7 +249,7 @@ def test_fetches_a_user():
 - Annotation attributes keep their Java names (`baseUrlProperties`,
   `startApplication`). Array attributes take lists.
 - `filesUnderClasspath` looks in Pyronaut's test resources (`tests-config/`).
-  This needs a version later than 0.1.0. Default stub directories are
+  This needs 0.2.0 or later. Default stub directories are
   relative to the project, for example `wiremock/`.
 - In pytest, start a `WireMockServer` in a fixture and pass its `baseUrl()`
   to `MicronautTest(properties=...)`.
