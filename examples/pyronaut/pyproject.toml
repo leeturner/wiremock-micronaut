@@ -30,10 +30,10 @@ repositories = [
 ]
 
 [tool.pyronaut.core]
-version = "5.2.14"
+version = "5.2.15"
 
 [tool.pyronaut.platform]
-version = "5.2.1"
+version = "5.2.2"
 
 [tool.pyronaut.toolchain]
 type = "jvm"
