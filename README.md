@@ -1,5 +1,7 @@
 # wiremock-micronaut
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.leeturner/wiremock-micronaut)](https://central.sonatype.com/artifact/io.github.leeturner/wiremock-micronaut)
+
 WireMock for Micronaut 5 tests: start WireMock servers per test class, bind
 their URLs into Micronaut configuration before your beans are created, and
 inject them into your tests. Annotations and attributes mirror
@@ -14,8 +16,10 @@ inject them into your tests. Annotations and attributes mirror
 ## Install
 
 ```kotlin
-testImplementation("io.github.leeturner:wiremock-micronaut:0.1.0")
+testImplementation("io.github.leeturner:wiremock-micronaut:<version>")
 ```
+
+The latest `<version>` is on the Maven Central badge above.
 
 The library brings `wiremock-standalone` (a shaded jar), so WireMock's own
 dependencies never clash with Micronaut's.
