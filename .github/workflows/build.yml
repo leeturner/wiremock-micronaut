@@ -41,7 +41,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       # The example depends on this build, not the release on Maven Central.
       - run: ./gradlew publishToMavenLocal
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
       - run: pip install pyronaut==0.1.0
