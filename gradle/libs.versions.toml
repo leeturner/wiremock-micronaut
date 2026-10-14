@@ -9,7 +9,7 @@ wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 
 [plugins]
-spotless = { id = "com.diffplug.spotless", version = "8.10.3" }
+spotless = { id = "com.diffplug.spotless", version = "8.10.4" }
 maven-publish = { id = "com.vanniktech.maven.publish", version = "0.37.0" }
 micronaut-library = { id = "io.micronaut.library", version = "5.0.2" }
 micronaut-application = { id = "io.micronaut.application", version = "5.0.2" }
