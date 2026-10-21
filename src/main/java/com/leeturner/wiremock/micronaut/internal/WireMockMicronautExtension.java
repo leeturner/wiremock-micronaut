@@ -92,14 +92,7 @@ public final class WireMockMicronautExtension
     servers.values().stream()
         .filter(running -> running.options().resetWireMockServer())
         .map(RunningServer::server)
-        .forEach(
-            server -> {
-              // resetAll() keeps message stubs (re-adding file ones as duplicates) and the
-              // message journal; clear them, then let resetAll() reload the file stubs.
-              server.resetMessageStubs();
-              server.resetAll();
-              server.resetMessageJournal();
-            });
+        .forEach(WireMockServer::resetAll);
     if (servers.size() == 1) {
       WireMockServer server = servers.values().iterator().next().server();
       WireMock.configureFor(
