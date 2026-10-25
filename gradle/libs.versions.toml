@@ -1,5 +1,5 @@
 [versions]
-micronaut = "5.2.2"
+micronaut = "5.2.3"
 wiremock = "4.0.0-beta.41"
 jspecify = "1.0.1"
 google-java-format = "1.35.0"
