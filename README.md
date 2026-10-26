@@ -1,6 +1,8 @@
 # wiremock-micronaut
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.leeturner/wiremock-micronaut)](https://central.sonatype.com/artifact/io.github.leeturner/wiremock-micronaut)
+[![Build](https://github.com/leeturner/wiremock-micronaut/actions/workflows/build.yml/badge.svg)](https://github.com/leeturner/wiremock-micronaut/actions/workflows/build.yml)
+[![Licence](https://img.shields.io/github/license/leeturner/wiremock-micronaut)](LICENSE)
 
 WireMock for Micronaut 5 tests: start WireMock servers per test class, bind
 their URLs into Micronaut configuration before your beans are created, and
@@ -294,3 +296,18 @@ graalpy -m venv .venv && pyronaut install && pyronaut test
 ## Versioning
 
 `0.x` while WireMock 4 is in beta. `1.0.0` will follow WireMock 4 GA.
+
+## Building
+
+Building needs JDK 25 (see `.sdkmanrc`).
+
+```shell
+./gradlew build
+```
+
+Publishing a GitHub Release publishes the library to Maven Central. Bug reports and ideas are welcome in
+[issues](https://github.com/leeturner/wiremock-micronaut/issues).
+
+## Licence
+
+Apache License 2.0. See [LICENSE](LICENSE).
