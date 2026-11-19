@@ -3,7 +3,7 @@
     {
       "name": "Live setlist stream",
       "request": { "method": "GET", "urlPath": "/gigs/radiohead-2026/live" },
-      "response": { "status": 200, "openSseChannel": true }
+      "response": { "status": 200, "openChannelOfType": "sse" }
     },
     {
       "name": "Start the gig",

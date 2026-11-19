@@ -153,7 +153,7 @@ An HTTP stub opens the stream:
 
 ```json
 { "request": { "method": "GET", "urlPath": "/gigs/radiohead-2026/live" },
-  "response": { "status": 200, "openSseChannel": true } }
+  "response": { "status": 200, "openChannelOfType": "sse" } }
 ```
 
 A message stub sends events to it when another stub (by `id`) is hit:
@@ -191,7 +191,7 @@ liveSetlist.waitForMessageEvent(
 - To consume SSE with a Micronaut declarative client, use the Netty
   `io.micronaut:micronaut-http-client`. The JDK client does not support
   SSE.
-- WebSockets work the same way, with `openWebsocketChannel` and
+- WebSockets work the same way, with `"openChannelOfType": "websocket"` and
   `"channelType": "websocket"`.
 
 ## Gotchas
