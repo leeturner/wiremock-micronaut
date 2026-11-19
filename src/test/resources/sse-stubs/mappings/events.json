@@ -2,7 +2,7 @@
   "mappings": [
     {
       "request": { "method": "GET", "urlPath": "/events" },
-      "response": { "status": 200, "openSseChannel": true }
+      "response": { "status": 200, "openChannelOfType": "sse" }
     },
     {
       "id": "bbbbbbbb-0000-4000-8000-000000000001",
