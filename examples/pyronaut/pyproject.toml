@@ -33,7 +33,7 @@ repositories = [
 version = "5.2.25"
 
 [tool.pyronaut.platform]
-version = "5.2.7"
+version = "5.2.8"
 
 [tool.pyronaut.toolchain]
 type = "jvm"
