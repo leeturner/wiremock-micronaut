@@ -1,6 +1,6 @@
 [versions]
 micronaut = "5.2.8"
-wiremock = "4.0.0-beta.43"
+wiremock = "4.0.0-beta.44"
 jspecify = "1.0.1"
 google-java-format = "1.35.0"
 
